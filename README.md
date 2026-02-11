@@ -2,6 +2,8 @@
 
 Консольное приложение на C# (.NET 8) для расчёта задолженности по заработной плате из-за непроведённой работодателем индексации с расчётом компенсации по ст. 236 ТК РФ.
 
+**Репозиторий**: [https://github.com/DeMMIss/RaschetZadoljennosti](https://github.com/DeMMIss/RaschetZadoljennosti)
+
 ## Возможности
 
 - Расчёт недоплаты за каждый период выплаты (аванс/расчёт) из-за непроведённой индексации
@@ -20,8 +22,8 @@
 
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/ваш-username/РасчетЗадолженностиЗП.git
-cd РасчетЗадолженностиЗП
+git clone https://github.com/DeMMIss/RaschetZadoljennosti.git
+cd RaschetZadoljennosti
 ```
 
 2. Восстановите зависимости:
