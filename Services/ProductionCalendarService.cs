@@ -14,7 +14,7 @@ public class ProductionCalendarService
 
     public async Task Load(int fromYear, int toYear)
     {
-        for (int year = fromYear; year <= toYear; year++)
+        for (var year = fromYear; year <= toYear; year++)
         {
             if (_nonWorkingDays.ContainsKey(year))
                 continue;
@@ -33,7 +33,7 @@ public class ProductionCalendarService
                     foreach (var dayStr in dayStrings)
                     {
                         var cleaned = dayStr.Trim().TrimEnd('*', '+');
-                        if (int.TryParse(cleaned, out int day))
+                        if (int.TryParse(cleaned, out var day))
                         {
                             if (dayStr.Trim().Contains('*'))
                                 continue;
@@ -58,11 +58,11 @@ public class ProductionCalendarService
 
     public int GetWorkingDays(int year, int month, int fromDay, int toDay)
     {
-        int count = 0;
-        int daysInMonth = DateTime.DaysInMonth(year, month);
-        int actualToDay = Math.Min(toDay, daysInMonth);
+        var count = 0;
+        var daysInMonth = DateTime.DaysInMonth(year, month);
+        var actualToDay = Math.Min(toDay, daysInMonth);
 
-        for (int d = fromDay; d <= actualToDay; d++)
+        for (var d = fromDay; d <= actualToDay; d++)
         {
             var date = new DateTime(year, month, d);
             if (IsWorkingDay(date))

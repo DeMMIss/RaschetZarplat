@@ -1,0 +1,38 @@
+{
+  "salary": {
+    "monthlySalary": 300000,
+    "salaryType": "Net",
+    "advancePayDay": 20,
+    "settlementPayDay": 5,
+    "probationSalary": 280000,
+    "probationPeriodMonths": 3
+  },
+  "indexation": {
+    "hireDate": "2024-07-22",
+    "baseSalaryNet": 300000,
+    "indexationEvents": [
+      {
+        "date": "2025-03-01",
+        "percent": 9.57,
+        "isPerformed": false
+      },
+      {
+        "date": "2026-03-01",
+        "percent": 5.59,
+        "isPerformed": false
+      }
+    ]
+  },
+  "calculation": {
+    "calculationDate": "2026-04-16"
+  },
+  "holidayWork": [
+    "2025-12-31",
+    "2026-01-01",
+    "2026-01-02"
+  ],
+  "sickLeaves": [
+  ],
+  "vacations": [
+  ]
+}

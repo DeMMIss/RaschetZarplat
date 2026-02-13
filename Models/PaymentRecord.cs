@@ -4,7 +4,9 @@ public enum PaymentType
 {
     Advance,
     Settlement,
-    HolidayWork
+    HolidayWork,
+    SickLeave,
+    Vacation
 }
 
 public class PaymentRecord
@@ -28,6 +30,8 @@ public class PaymentRecord
         PaymentType.Advance => "Аванс",
         PaymentType.Settlement => "Расчёт",
         PaymentType.HolidayWork => "Праздн.",
+        PaymentType.SickLeave => "Больничн.",
+        PaymentType.Vacation => "Отпуск",
         _ => "—"
     };
 }

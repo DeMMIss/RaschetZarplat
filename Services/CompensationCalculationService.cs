@@ -29,9 +29,9 @@ public class CompensationCalculationService
 
             foreach (var (from, to, rate) in periods)
             {
-                int days = (to - from).Days + 1;
-                decimal dailyRate = rate / 150m / 100m;
-                decimal amount = Math.Round(record.Underpayment * dailyRate * days, 2);
+                var days = (to - from).Days + 1;
+                var dailyRate = rate / 150m / 100m;
+                var amount = Math.Round(record.Underpayment * dailyRate * days, 2);
 
                 totalCompensation += amount;
 
