@@ -1,4 +1,4 @@
-namespace РасчетЗадолженностиЗП.Models;
+namespace РасчетВыплатЗарплаты.Models;
 
 public enum SalaryType
 {
@@ -23,8 +23,13 @@ public class SalaryInput
     public int? ProbationPeriodMonths { get; set; }
 
     public List<DateTime> HolidayWorkDates { get; set; } = new();
+    public HolidayWorkDailyRateMethod HolidayWorkDailyRateMethod { get; set; } = HolidayWorkDailyRateMethod.MonthlyWorkDays;
     public List<SickLeavePeriod> SickLeaves { get; set; } = new();
     public List<VacationPeriod> Vacations { get; set; } = new();
+    
+    public bool CalculateIndexationUnderpayments { get; set; } = false;
+    public bool CalculateUnusedVacationCompensation { get; set; } = false;
+    public DateTime? DismissalDate { get; set; }
 
     public decimal GrossSalary => SalaryType == SalaryType.Gross
         ? MonthlySalary

@@ -24,13 +24,19 @@
     ]
   },
   "calculation": {
-    "calculationDate": "2026-04-16"
+    "calculationDate": "2026-04-16",
+    "calculateIndexationUnderpayments": false,
+    "calculateUnusedVacationCompensation": false,
+    "dismissalDate": null
   },
-  "holidayWork": [
-    "2025-12-31",
-    "2026-01-01",
-    "2026-01-02"
-  ],
+  "holidayWork": {
+    "dates": [
+      "2025-12-31",
+      "2026-01-01",
+      "2026-01-02"
+    ],
+    "dailyRateMethod": "MonthlyWorkDays"
+  },
   "sickLeaves": [
   ],
   "vacations": [

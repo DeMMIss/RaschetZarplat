@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace РасчетЗадолженностиЗП.Models;
+namespace РасчетВыплатЗарплаты.Models;
 
 public class ConfigData
 {
@@ -14,7 +14,7 @@ public class ConfigData
     public CalculationConfig? Calculation { get; set; }
 
     [JsonPropertyName("holidayWork")]
-    public List<string>? HolidayWork { get; set; }
+    public HolidayWorkConfig? HolidayWork { get; set; }
 
     [JsonPropertyName("sickLeaves")]
     public List<SickLeaveConfig>? SickLeaves { get; set; }
@@ -72,6 +72,15 @@ public class CalculationConfig
 {
     [JsonPropertyName("calculationDate")]
     public string CalculationDate { get; set; } = string.Empty;
+    
+    [JsonPropertyName("calculateIndexationUnderpayments")]
+    public bool? CalculateIndexationUnderpayments { get; set; }
+    
+    [JsonPropertyName("calculateUnusedVacationCompensation")]
+    public bool? CalculateUnusedVacationCompensation { get; set; }
+    
+    [JsonPropertyName("dismissalDate")]
+    public string? DismissalDate { get; set; }
 }
 
 public class SickLeaveConfig
@@ -96,4 +105,13 @@ public class VacationConfig
 
     [JsonPropertyName("amount")]
     public decimal Amount { get; set; }
+}
+
+public class HolidayWorkConfig
+{
+    [JsonPropertyName("dates")]
+    public List<string>? Dates { get; set; }
+
+    [JsonPropertyName("dailyRateMethod")]
+    public string? DailyRateMethod { get; set; }
 }

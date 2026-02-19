@@ -1,0 +1,52 @@
+<Window x:Class="РасчетВыплатЗарплаты.ErrorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Ошибка" 
+        Height="450" Width="650"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize">
+    <Grid Margin="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <Border Grid.Row="0" Background="{StaticResource ErrorColor}" Padding="20,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="⚠️" FontSize="28" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding Title}" FontWeight="Bold" FontSize="16" 
+                           Foreground="White" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+        
+        <Border Grid.Row="1" Background="White" Padding="20">
+            <TextBox x:Name="ErrorTextBox" 
+                     IsReadOnly="True" 
+                     TextWrapping="Wrap" 
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     FontFamily="Consolas"
+                     FontSize="11"
+                     Background="#FAFAFA"
+                     BorderThickness="0"
+                     Text="{Binding ErrorMessage}"
+                     Padding="10"/>
+        </Border>
+        
+        <Border Grid.Row="2" Background="{StaticResource BackgroundColor}" BorderBrush="{StaticResource BorderColor}" 
+                BorderThickness="0,1,0,0" Padding="15">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="📋 Копировать" Style="{StaticResource SecondaryButtonStyle}" 
+                        Width="130" Height="36" Margin="0,0,10,0" Padding="12,8" Click="CopyButton_Click"
+                        ToolTip="Скопировать текст ошибки в буфер обмена"/>
+                <Button Content="OK" Style="{StaticResource PrimaryButtonStyle}" 
+                        Width="100" Height="36" Padding="12,8" IsDefault="True" Click="OkButton_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

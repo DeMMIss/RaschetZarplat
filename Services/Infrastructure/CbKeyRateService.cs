@@ -1,9 +1,11 @@
+using System.Net.Http;
 using System.Xml.Linq;
-using РасчетЗадолженностиЗП.Models;
+using РасчетВыплатЗарплаты.Models;
+using РасчетВыплатЗарплаты.Models.Domain;
 
-namespace РасчетЗадолженностиЗП.Services;
+namespace РасчетВыплатЗарплаты.Services.Infrastructure;
 
-public class CbKeyRateService
+public class CbKeyRateService : ICbKeyRateService
 {
     private readonly HttpClient _httpClient;
     private List<KeyRateRecord> _rates = new();

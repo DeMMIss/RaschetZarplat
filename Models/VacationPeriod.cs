@@ -1,4 +1,4 @@
-namespace РасчетЗадолженностиЗП.Models;
+namespace РасчетВыплатЗарплаты.Models;
 
 public class VacationPeriod
 {

@@ -1,8 +1,10 @@
+using System.Net.Http;
 using System.Text.Json;
+using РасчетВыплатЗарплаты.Models.Domain;
 
-namespace РасчетЗадолженностиЗП.Services;
+namespace РасчетВыплатЗарплаты.Services.Infrastructure;
 
-public class ProductionCalendarService
+public class ProductionCalendarService : IProductionCalendar
 {
     private readonly HttpClient _httpClient;
     private readonly Dictionary<int, HashSet<DateTime>> _nonWorkingDays = new();
@@ -53,6 +55,9 @@ public class ProductionCalendarService
         if (!_nonWorkingDays.ContainsKey(date.Year))
             throw new InvalidOperationException($"Производственный календарь для {date.Year} года не загружен.");
 
+        if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday)
+            return false;
+
         return !_nonWorkingDays[date.Year].Contains(date.Date);
     }
 
@@ -95,6 +100,24 @@ public class ProductionCalendarService
             current = current.AddDays(-1);
         }
         return current;
+    }
+
+    public decimal GetAverageMonthlyWorkDaysPerYear(int year)
+    {
+        var totalWorkDays = 0;
+        var monthsCount = 0;
+        
+        for (int month = 1; month <= 12; month++)
+        {
+            var workDays = GetTotalWorkingDays(year, month);
+            if (workDays > 0)
+            {
+                totalWorkDays += workDays;
+                monthsCount++;
+            }
+        }
+        
+        return monthsCount > 0 ? (decimal)totalWorkDays / monthsCount : 0;
     }
 
     private class CalendarJson

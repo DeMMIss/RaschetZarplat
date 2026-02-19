@@ -1,0 +1,410 @@
+<Window x:Class="РасчетВыплатЗарплаты.ResultsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:РасчетВыплатЗарплаты"
+        Title="Результаты расчёта" 
+        Height="800" Width="1200"
+        MinHeight="600" MinWidth="1000"
+        WindowStartupLocation="CenterScreen"
+        SizeToContent="Manual">
+    <Window.Resources>
+        <local:TotalPaymentConverter x:Key="TotalPaymentConverter"/>
+        <local:ExpandIconConverter x:Key="ExpandIconConverter"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TabControl Grid.Row="0">
+            <TabItem Header="Сводка">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="SummaryPanel" Margin="15">
+                        <GroupBox Header="💵 Оклад и индексации" Margin="0,0,0,15" FontSize="13">
+                            <StackPanel Margin="10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Оклад:" FontWeight="Bold" Margin="0,0,10,5" FontSize="13"/>
+                                    <TextBlock x:Name="SalaryTextBlock" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5" FontSize="13"/>
+                                </Grid>
+                                <ItemsControl x:Name="IndexationRulesItemsControl" Margin="0,10,0,0"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox x:Name="DebtGroupBox" Header="💰 Результаты расчёта задолженности" Margin="0,0,0,15" FontSize="13">
+                            <StackPanel Margin="10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Общая недоплата:" FontWeight="SemiBold" Margin="0,0,10,8" FontSize="14"/>
+                                    <TextBlock x:Name="TotalUnderpaymentTextBlock" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8" FontSize="14" 
+                                               Foreground="{StaticResource WarningColor}" FontWeight="SemiBold"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Компенсация по ст. 236 ТК РФ:" FontWeight="SemiBold" Margin="0,0,10,8" FontSize="14"/>
+                                    <TextBlock x:Name="TotalCompensationTextBlock" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8" FontSize="14" 
+                                               Foreground="{StaticResource WarningColor}" FontWeight="SemiBold"/>
+                                    <Border Grid.Row="2" Grid.ColumnSpan="2" Background="{StaticResource AccentLightColor}" 
+                                            BorderBrush="{StaticResource PrimaryColor}" BorderThickness="2" 
+                                            CornerRadius="4" Padding="12" Margin="0,10,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="ИТОГО К ВЫПЛАТЕ:" FontWeight="Bold" FontSize="16" 
+                                                       Foreground="{StaticResource PrimaryColor}" Margin="0,0,10,0"/>
+                                            <TextBlock x:Name="TotalToPayTextBlock" Grid.Column="1" FontWeight="Bold" FontSize="18" 
+                                                       Foreground="{StaticResource PrimaryColor}"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox x:Name="HolidayWorkGroupBox" Header="🎉 Работа в праздничные дни" Margin="0,0,0,15" FontSize="13">
+                            <ItemsControl x:Name="HolidayWorkItemsControl" Margin="10"/>
+                        </GroupBox>
+                        
+                        <GroupBox x:Name="SickLeaveGroupBox" Header="🏥 Больничные" Margin="0,0,0,15" FontSize="13">
+                            <ItemsControl x:Name="SickLeaveItemsControl" Margin="10"/>
+                        </GroupBox>
+                        
+                        <GroupBox x:Name="VacationPaymentsGroupBox" Header="🏖️ Отпускные выплаты" Margin="0,0,0,15" FontSize="13">
+                            <ItemsControl x:Name="VacationPaymentsItemsControl" Margin="10"/>
+                        </GroupBox>
+                        
+                        <GroupBox x:Name="UnusedVacationGroupBox" Header="🎯 Компенсация за неиспользованный отпуск" Margin="0,0,0,15" FontSize="13">
+                            <StackPanel Margin="10">
+                                <Grid Margin="0,0,0,15">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Период работы:" FontWeight="SemiBold" Margin="0,0,10,8" FontSize="13"/>
+                                    <TextBlock x:Name="UnusedVacationHireDateTextBlock" Grid.Row="0" Grid.Column="1" Margin="0,0,20,8" FontSize="13"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="—" Margin="0,0,10,8" FontSize="13"/>
+                                    <TextBlock x:Name="UnusedVacationDismissalDateTextBlock" Grid.Row="0" Grid.Column="3" Margin="0,0,0,8" FontSize="13"/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Отработано:" FontWeight="SemiBold" Margin="0,0,10,8" FontSize="13"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,0,20,8" FontSize="13">
+                                        <Run x:Name="UnusedVacationWorkMonthsTextBlock"/>
+                                        <Run Text=" мес."/>
+                                    </TextBlock>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Дни отпуска:" FontWeight="SemiBold" Margin="0,0,10,8" FontSize="13"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="3" Margin="0,0,0,8" FontSize="13">
+                                        <Run Text="Заработано: "/>
+                                        <Run x:Name="UnusedVacationEarnedDaysTextBlock" FontWeight="SemiBold"/>
+                                        <Run Text=" | Использовано: "/>
+                                        <Run x:Name="UnusedVacationUsedDaysTextBlock" FontWeight="SemiBold"/>
+                                        <Run Text=" | Неиспользовано: "/>
+                                        <Run x:Name="UnusedVacationUnusedDaysTextBlock" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
+                                    </TextBlock>
+                                    
+                                    <Border Grid.Row="2" Grid.ColumnSpan="4" Background="{StaticResource AccentLightColor}" 
+                                            BorderBrush="{StaticResource BorderColor}" BorderThickness="1" 
+                                            CornerRadius="4" Padding="15" Margin="0,5,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto" MinWidth="200"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Без учета индексации" 
+                                                       FontWeight="Bold" FontSize="13" Margin="0,0,0,10" 
+                                                       Foreground="{StaticResource TextSecondaryColor}"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Text="С учетом индексации" 
+                                                       FontWeight="Bold" FontSize="13" Margin="0,0,0,10" 
+                                                       Foreground="{StaticResource PrimaryColor}"/>
+                                            
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Средний дневной заработок (gross):" 
+                                                       Margin="0,0,10,5" FontSize="13"/>
+                                            <TextBlock x:Name="UnusedVacationAvgDailyWithoutTextBlock" Grid.Row="1" Grid.Column="1" 
+                                                       Margin="0,0,20,5" FontSize="13" HorizontalAlignment="Right"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="2" Text="Средний дневной заработок (gross):" 
+                                                       Margin="0,0,10,5" FontSize="13"/>
+                                            <TextBlock x:Name="UnusedVacationAvgDailyWithTextBlock" Grid.Row="1" Grid.Column="3" 
+                                                       Margin="0,0,0,5" FontSize="13" HorizontalAlignment="Right" 
+                                                       Foreground="{StaticResource PrimaryColor}" FontWeight="SemiBold"/>
+                                            
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Компенсация (net):" 
+                                                       FontWeight="SemiBold" Margin="0,0,10,0" FontSize="13"/>
+                                            <TextBlock x:Name="UnusedVacationCompensationWithoutTextBlock" Grid.Row="2" Grid.Column="1" 
+                                                       Margin="0,0,20,0" FontSize="13" HorizontalAlignment="Right"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="2" Text="Компенсация (net):" 
+                                                       FontWeight="SemiBold" Margin="0,0,10,0" FontSize="13"/>
+                                            <TextBlock x:Name="UnusedVacationCompensationWithTextBlock" Grid.Row="2" Grid.Column="3" 
+                                                       Margin="0,0,0,0" FontSize="13" HorizontalAlignment="Right" 
+                                                       Foreground="{StaticResource PrimaryColor}" FontWeight="Bold"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                                
+                                <Border Background="{StaticResource AccentLightColor}" 
+                                        BorderBrush="{StaticResource PrimaryColor}" BorderThickness="2" 
+                                        CornerRadius="4" Padding="15" Margin="0,10,0,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Недоплата из-за непроведенной индексации:" 
+                                                   FontWeight="Bold" Margin="0,0,10,0" FontSize="15" 
+                                                   Foreground="{StaticResource TextPrimaryColor}"/>
+                                        <TextBlock x:Name="UnusedVacationDifferenceTextBlock" Grid.Column="1" 
+                                                   FontWeight="Bold" FontSize="18" 
+                                                   Foreground="{StaticResource PrimaryColor}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <TabItem x:Name="OptionalCalculationsTabItem" Header="📋 Опциональные расчёты">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="OptionalCalculationsPanel" Margin="15">
+                        <GroupBox x:Name="VacationPayGroupBox" Header="🏖️ Расчёт отпускных" Margin="0,0,0,15" FontSize="13">
+                            <ItemsControl x:Name="VacationPayItemsControl" Margin="10"/>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            
+            <TabItem Header="💳 Выплаты">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Text="Все суммы указаны в рублях (net - на руки)" 
+                               FontSize="12" Foreground="{StaticResource TextSecondaryColor}" 
+                               Margin="0,0,0,10" FontStyle="Italic"/>
+                    
+                    <DataGrid x:Name="PaymentsDataGrid" Grid.Row="1" IsReadOnly="True" 
+                              AutoGenerateColumns="False" GridLinesVisibility="Horizontal"
+                              FontSize="13" HeadersVisibility="Column"
+                              SelectionMode="Single" SelectionUnit="FullRow"
+                              CanUserResizeColumns="True"
+                              LoadingRow="PaymentsDataGrid_LoadingRow"
+                              SelectionChanged="PaymentsDataGrid_SelectionChanged">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="Background" Value="White"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsGroup}" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource AccentLightColor}"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Период" Width="220" MinWidth="200">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" x:Name="ExpandIcon" 
+                                                       Text="▶" FontSize="12" Margin="5,0,8,0" 
+                                                       VerticalAlignment="Center" Visibility="Collapsed"
+                                                       FontWeight="Bold"
+                                                       RenderTransformOrigin="0.5,0.5">
+                                                <TextBlock.RenderTransform>
+                                                    <RotateTransform x:Name="ExpandIconTransform" Angle="0"/>
+                                                </TextBlock.RenderTransform>
+                                            </TextBlock>
+                                            <TextBlock Grid.Column="1" x:Name="PeriodText" 
+                                                       Text="{Binding PeriodDisplay}" 
+                                                       VerticalAlignment="Center" Padding="8,4"
+                                                       HorizontalAlignment="Left"
+                                                       FontWeight="Normal"
+                                                       TextWrapping="Wrap"/>
+                                        </Grid>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsGroup}" Value="True">
+                                                <Setter TargetName="ExpandIcon" Property="Visibility" Value="Visible"/>
+                                                <Setter TargetName="PeriodText" Property="FontWeight" Value="Bold"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Тип выплаты" Width="200" MinWidth="180">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding TypeDisplay}" Padding="8,4" 
+                                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Дата выплаты" Width="140" MinWidth="130">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock x:Name="DateTextBlock" 
+                                                   HorizontalAlignment="Center" Padding="8,4"
+                                                   VerticalAlignment="Center"
+                                                   Text="{Binding PaymentDate, StringFormat='dd.MM.yyyy'}"/>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsGroup}" Value="True">
+                                                <Setter TargetName="DateTextBlock" Property="Text" Value="—"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Выплачено" Width="150" MinWidth="140">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock HorizontalAlignment="Right" Padding="8,4"
+                                                   VerticalAlignment="Center"
+                                                   Text="{Binding NetAmount, StringFormat='N2'}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="НДФЛ" Width="130" MinWidth="120">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock HorizontalAlignment="Right" Padding="8,4"
+                                                   VerticalAlignment="Center"
+                                                   Text="{Binding NdflAmount, StringFormat='N2'}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Должно быть выплачено" Width="180" MinWidth="170">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock HorizontalAlignment="Right" Padding="8,4"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource PrimaryColor}" FontWeight="SemiBold"
+                                                   Text="{Binding IndexedNetAmount, StringFormat='N2'}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Недоплата" Width="140" MinWidth="130">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock HorizontalAlignment="Right" Padding="8,4"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource WarningColor}" FontWeight="SemiBold"
+                                                   Text="{Binding Underpayment, StringFormat='N2'}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Компенсация (ст. 236 ТК РФ)" Width="200" MinWidth="180">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock HorizontalAlignment="Right" Padding="8,4"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource WarningColor}" FontWeight="SemiBold"
+                                                   Text="{Binding Compensation, StringFormat='N2'}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Итого к доплате" Width="170" MinWidth="160">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock HorizontalAlignment="Right" Padding="8,4"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource PrimaryColor}" FontWeight="Bold"
+                                                   Text="{Binding Path=., Converter={StaticResource TotalPaymentConverter}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    
+                    <Border Grid.Row="2" Background="{StaticResource AccentLightColor}" 
+                            BorderBrush="{StaticResource PrimaryColor}" BorderThickness="0,2,0,0" 
+                            Padding="12,10" Margin="0,10,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="220"/>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="180"/>
+                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="170"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="ИТОГО:" FontWeight="Bold" FontSize="14" 
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="3" x:Name="TotalNetTextBlock" Text="0.00" 
+                                       FontWeight="Bold" FontSize="14" HorizontalAlignment="Right" 
+                                       VerticalAlignment="Center" Padding="8,4"/>
+                            <TextBlock Grid.Column="4" x:Name="TotalNdflTextBlock" Text="0.00" 
+                                       FontWeight="Bold" FontSize="14" HorizontalAlignment="Right" 
+                                       VerticalAlignment="Center" Padding="8,4"/>
+                            <TextBlock Grid.Column="5" x:Name="TotalIndexedNetTextBlock" Text="0.00" 
+                                       FontWeight="Bold" FontSize="14" HorizontalAlignment="Right" 
+                                       VerticalAlignment="Center" Padding="8,4"
+                                       Foreground="{StaticResource PrimaryColor}"/>
+                            <TextBlock Grid.Column="6" x:Name="PaymentsTotalUnderpaymentTextBlock" Text="0.00" 
+                                       FontWeight="Bold" FontSize="14" HorizontalAlignment="Right" 
+                                       VerticalAlignment="Center" Padding="8,4"
+                                       Foreground="{StaticResource WarningColor}"/>
+                            <TextBlock Grid.Column="7" x:Name="PaymentsTotalCompensationTextBlock" Text="0.00" 
+                                       FontWeight="Bold" FontSize="14" HorizontalAlignment="Right" 
+                                       VerticalAlignment="Center" Padding="8,4"
+                                       Foreground="{StaticResource WarningColor}"/>
+                            <TextBlock Grid.Column="8" x:Name="PaymentsTotalToPayTextBlock" Text="0.00" 
+                                       FontWeight="Bold" FontSize="15" HorizontalAlignment="Right" 
+                                       VerticalAlignment="Center" Padding="8,4"
+                                       Foreground="{StaticResource PrimaryColor}"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        
+        <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="15">
+            <Grid>
+                <Label x:Name="StatusLabel" Content="Готово" HorizontalAlignment="Left" VerticalAlignment="Center" 
+                       Foreground="{StaticResource TextSecondaryColor}" FontSize="13"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="📊 Excel" Style="{StaticResource SecondaryButtonStyle}" 
+                            Margin="0,0,10,0" Padding="16,10" Click="ExportExcel_Click"
+                            ToolTip="Экспортировать результаты в Excel файл"/>
+                    <Button Content="📄 CSV" Style="{StaticResource SecondaryButtonStyle}" 
+                            Padding="16,10" Click="ExportCsv_Click"
+                            ToolTip="Экспортировать результаты в CSV файл"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -87,3 +87,5 @@ artifacts/
 .Trashes
 ehthumbs.db
 Thumbs.db
+/config.json
+/РасчетВыплатЗарплаты.csv

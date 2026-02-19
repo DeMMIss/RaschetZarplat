@@ -1,7 +1,7 @@
 using ClosedXML.Excel;
-using РасчетЗадолженностиЗП.Models;
+using РасчетВыплатЗарплаты.Models;
 
-namespace РасчетЗадолженностиЗП.Services;
+namespace РасчетВыплатЗарплаты.Services.Export;
 
 public class ExcelExportService
 {
@@ -9,7 +9,7 @@ public class ExcelExportService
     {
         using var workbook = new XLWorkbook();
 
-        var hasIndexation = input.IndexationRules.Any(r => !r.IsPerformed);
+        var hasIndexation = input.CalculateIndexationUnderpayments;
         
         CreateParametersSheet(workbook, input);
         CreateMainSheet(workbook, records, input, hasIndexation);
@@ -117,7 +117,7 @@ public class ExcelExportService
         var ws = workbook.Worksheets.Add(hasIndexation ? "Расчёт задолженности" : "Отчёт по зарплате");
 
         var unperformedIndexations = input.IndexationRules.Where(r => !r.IsPerformed).ToList();
-        var firstIndexationDate = hasIndexation
+        var firstIndexationDate = hasIndexation && unperformedIndexations.Count > 0
             ? unperformedIndexations.OrderBy(r => r.Date).First().Date
             : (DateTime?)null;
 
@@ -127,7 +127,7 @@ public class ExcelExportService
             headers = new[]
             {
                 "Период", "Тип", "Дата выплаты",
-                "Без индексации (gross)", "Без индексации (net)",
+                "Без индексации (gross)", "Без индексации (net)", "НДФЛ",
                 "С индексацией (gross)", "С индексацией (net)",
                 "Недоплата (net)", "Дней просрочки", "Компенсация", "Подлежала индексации"
             };
@@ -137,7 +137,7 @@ public class ExcelExportService
             headers = new[]
             {
                 "Период", "Тип", "Дата выплаты",
-                "Сумма (gross)", "Сумма (net)"
+                "Сумма (gross)", "Сумма (net)", "НДФЛ"
             };
         }
 
@@ -161,28 +161,31 @@ public class ExcelExportService
 
                 ws.Cell(row, 4).Value = r.GrossAmount;
                 ws.Cell(row, 5).Value = r.NetAmount;
-                ws.Cell(row, 6).Value = r.IndexedGrossAmount;
-                ws.Cell(row, 7).Value = r.IndexedNetAmount;
-                ws.Cell(row, 8).Value = r.Underpayment;
-                ws.Cell(row, 9).Value = r.DelayDays;
-                ws.Cell(row, 10).Value = r.Compensation;
-                ws.Cell(row, 11).Value = wasIndexed ? "Да" : "Нет";
+                ws.Cell(row, 6).Value = r.NdflAmount;
+                ws.Cell(row, 7).Value = r.IndexedGrossAmount;
+                ws.Cell(row, 8).Value = r.IndexedNetAmount;
+                ws.Cell(row, 9).Value = r.Underpayment;
+                ws.Cell(row, 10).Value = r.DelayDays;
+                ws.Cell(row, 11).Value = r.Compensation;
+                ws.Cell(row, 12).Value = wasIndexed ? "Да" : "Нет";
 
-                for (var c = 4; c <= 8; c++)
+                for (var c = 4; c <= 9; c++)
                     ws.Cell(row, c).Style.NumberFormat.Format = "#,##0.00";
-                ws.Cell(row, 10).Style.NumberFormat.Format = "#,##0.00";
+                ws.Cell(row, 11).Style.NumberFormat.Format = "#,##0.00";
 
                 if (!wasIndexed)
                 {
-                    ws.Range(row, 1, row, 11).Style.Fill.BackgroundColor = XLColor.LightYellow;
+                    ws.Range(row, 1, row, 12).Style.Fill.BackgroundColor = XLColor.LightYellow;
                 }
             }
             else
             {
                 ws.Cell(row, 4).Value = r.GrossAmount;
                 ws.Cell(row, 5).Value = r.NetAmount;
+                ws.Cell(row, 6).Value = r.NdflAmount;
                 ws.Cell(row, 4).Style.NumberFormat.Format = "#,##0.00";
                 ws.Cell(row, 5).Style.NumberFormat.Format = "#,##0.00";
+                ws.Cell(row, 6).Style.NumberFormat.Format = "#,##0.00";
             }
         }
 
@@ -192,19 +195,22 @@ public class ExcelExportService
         
         if (hasIndexation)
         {
-            ws.Cell(totalRow, 8).Value = records.Sum(r => r.Underpayment);
-            ws.Cell(totalRow, 8).Style.NumberFormat.Format = "#,##0.00";
-            ws.Cell(totalRow, 8).Style.Font.Bold = true;
-            ws.Cell(totalRow, 10).Value = records.Sum(r => r.Compensation);
-            ws.Cell(totalRow, 10).Style.NumberFormat.Format = "#,##0.00";
-            ws.Cell(totalRow, 10).Style.Font.Bold = true;
+            ws.Cell(totalRow, 6).Value = records.Sum(r => r.NdflAmount);
+            ws.Cell(totalRow, 6).Style.NumberFormat.Format = "#,##0.00";
+            ws.Cell(totalRow, 6).Style.Font.Bold = true;
+            ws.Cell(totalRow, 9).Value = records.Sum(r => r.Underpayment);
+            ws.Cell(totalRow, 9).Style.NumberFormat.Format = "#,##0.00";
+            ws.Cell(totalRow, 9).Style.Font.Bold = true;
+            ws.Cell(totalRow, 11).Value = records.Sum(r => r.Compensation);
+            ws.Cell(totalRow, 11).Style.NumberFormat.Format = "#,##0.00";
+            ws.Cell(totalRow, 11).Style.Font.Bold = true;
 
             var grandTotalRow = totalRow + 1;
             ws.Cell(grandTotalRow, 1).Value = "ИТОГО К ВЗЫСКАНИЮ";
             ws.Cell(grandTotalRow, 1).Style.Font.Bold = true;
-            ws.Cell(grandTotalRow, 8).Value = records.Sum(r => r.Underpayment) + records.Sum(r => r.Compensation);
-            ws.Cell(grandTotalRow, 8).Style.NumberFormat.Format = "#,##0.00";
-            ws.Cell(grandTotalRow, 8).Style.Font.Bold = true;
+            ws.Cell(grandTotalRow, 9).Value = records.Sum(r => r.Underpayment) + records.Sum(r => r.Compensation);
+            ws.Cell(grandTotalRow, 9).Style.NumberFormat.Format = "#,##0.00";
+            ws.Cell(grandTotalRow, 9).Style.Font.Bold = true;
             
             if (firstIndexationDate.HasValue)
             {
@@ -212,17 +218,20 @@ public class ExcelExportService
                 ws.Cell(noteRow, 1).Value = "Примечание:";
                 ws.Cell(noteRow, 1).Style.Font.Bold = true;
                 ws.Cell(noteRow + 1, 1).Value = $"Выплаты до {firstIndexationDate.Value:dd.MM.yyyy} не подлежали индексации и выделены желтым цветом.";
-                ws.Range(noteRow + 1, 1, noteRow + 1, 11).Merge();
+                ws.Range(noteRow + 1, 1, noteRow + 1, 12).Merge();
             }
         }
         else
         {
             ws.Cell(totalRow, 4).Value = records.Sum(r => r.GrossAmount);
             ws.Cell(totalRow, 5).Value = records.Sum(r => r.NetAmount);
+            ws.Cell(totalRow, 6).Value = records.Sum(r => r.NdflAmount);
             ws.Cell(totalRow, 4).Style.NumberFormat.Format = "#,##0.00";
             ws.Cell(totalRow, 4).Style.Font.Bold = true;
             ws.Cell(totalRow, 5).Style.NumberFormat.Format = "#,##0.00";
             ws.Cell(totalRow, 5).Style.Font.Bold = true;
+            ws.Cell(totalRow, 6).Style.NumberFormat.Format = "#,##0.00";
+            ws.Cell(totalRow, 6).Style.Font.Bold = true;
         }
 
         ws.Columns().AdjustToContents();

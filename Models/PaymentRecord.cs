@@ -1,4 +1,4 @@
-namespace РасчетЗадолженностиЗП.Models;
+namespace РасчетВыплатЗарплаты.Models;
 
 public enum PaymentType
 {
@@ -23,6 +23,10 @@ public class PaymentRecord
     public int DelayDays { get; set; }
     public decimal Compensation { get; set; }
     public List<CompensationDetail> CompensationDetails { get; set; } = new();
+    public bool IsGroup => false;
+
+    public decimal NdflAmount => GrossAmount - NetAmount;
+    public decimal IndexedNdflAmount => IndexedGrossAmount - IndexedNetAmount;
 
     public string PeriodDisplay => $"{Year}-{Month:D2}";
     public string TypeDisplay => Type switch

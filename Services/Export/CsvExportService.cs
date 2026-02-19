@@ -1,8 +1,8 @@
-using System.Globalization;
+using System.IO;
 using System.Text;
-using РасчетЗадолженностиЗП.Models;
+using РасчетВыплатЗарплаты.Models;
 
-namespace РасчетЗадолженностиЗП.Services;
+namespace РасчетВыплатЗарплаты.Services.Export;
 
 public class CsvExportService
 {
@@ -74,43 +74,50 @@ public class CsvExportService
         }
 
         csv.AppendLine();
-        var hasIndexation = input.IndexationRules.Any(r => !r.IsPerformed);
+        var hasIndexation = input.CalculateIndexationUnderpayments;
         
         if (hasIndexation)
         {
             csv.AppendLine("=== РАСЧЁТ ЗАДОЛЖЕННОСТИ ===");
-            csv.AppendLine("Период;Тип;Дата выплаты;Без индексации (gross);Без индексации (net);С индексацией (gross);С индексацией (net);Недоплата (net);Дней просрочки;Компенсация;Подлежала индексации");
+            csv.AppendLine("Период;Тип;Дата выплаты;Без индексации (gross);Без индексации (net);НДФЛ;С индексацией (gross);С индексацией (net);Недоплата (net);Дней просрочки;Компенсация;Подлежала индексации");
 
             var unperformedIndexations = input.IndexationRules.Where(r => !r.IsPerformed).ToList();
-            var firstIndexationDate = unperformedIndexations.OrderBy(r => r.Date).First().Date;
+            var firstIndexationDate = unperformedIndexations.Count > 0
+                ? unperformedIndexations.OrderBy(r => r.Date).First().Date
+                : (DateTime?)null;
 
             foreach (var r in records)
             {
-                var wasIndexed = r.PaymentDate >= firstIndexationDate;
-                csv.AppendLine($"{EscapeCsv(r.PeriodDisplay)};{EscapeCsv(r.TypeDisplay)};{r.PaymentDate:dd.MM.yyyy};{r.GrossAmount:N2};{r.NetAmount:N2};{r.IndexedGrossAmount:N2};{r.IndexedNetAmount:N2};{r.Underpayment:N2};{r.DelayDays};{r.Compensation:N2};{(wasIndexed ? "Да" : "Нет")}");
+                var wasIndexed = firstIndexationDate.HasValue && r.PaymentDate >= firstIndexationDate.Value;
+                csv.AppendLine($"{EscapeCsv(r.PeriodDisplay)};{EscapeCsv(r.TypeDisplay)};{r.PaymentDate:dd.MM.yyyy};{r.GrossAmount:N2};{r.NetAmount:N2};{r.NdflAmount:N2};{r.IndexedGrossAmount:N2};{r.IndexedNetAmount:N2};{r.Underpayment:N2};{r.DelayDays};{r.Compensation:N2};{(wasIndexed ? "Да" : "Нет")}");
             }
 
             var totalUnderpayment = records.Sum(r => r.Underpayment);
             var totalCompensation = records.Sum(r => r.Compensation);
-            csv.AppendLine($"ИТОГО;;;;;;;;{totalUnderpayment:N2};;{totalCompensation:N2};");
-            csv.AppendLine($"ИТОГО К ВЗЫСКАНИЮ;;;;;;;;{totalUnderpayment + totalCompensation:N2};;;");
+            var totalNdfl = records.Sum(r => r.NdflAmount);
+            csv.AppendLine($"ИТОГО;;;;;;;{totalUnderpayment:N2};;{totalCompensation:N2};");
+            csv.AppendLine($"ИТОГО К ВЗЫСКАНИЮ;;;;;;;{totalUnderpayment + totalCompensation:N2};;;");
             
-            csv.AppendLine();
-            csv.AppendLine($"Примечание: Выплаты до {firstIndexationDate:dd.MM.yyyy} не подлежали индексации.");
+            if (firstIndexationDate.HasValue)
+            {
+                csv.AppendLine();
+                csv.AppendLine($"Примечание: Выплаты до {firstIndexationDate.Value:dd.MM.yyyy} не подлежали индексации.");
+            }
         }
         else
         {
             csv.AppendLine("=== ОТЧЁТ ПО ЗАРПЛАТЕ ===");
-            csv.AppendLine("Период;Тип;Дата выплаты;Сумма (gross);Сумма (net)");
+            csv.AppendLine("Период;Тип;Дата выплаты;Сумма (gross);Сумма (net);НДФЛ");
 
             foreach (var r in records)
             {
-                csv.AppendLine($"{EscapeCsv(r.PeriodDisplay)};{EscapeCsv(r.TypeDisplay)};{r.PaymentDate:dd.MM.yyyy};{r.GrossAmount:N2};{r.NetAmount:N2}");
+                csv.AppendLine($"{EscapeCsv(r.PeriodDisplay)};{EscapeCsv(r.TypeDisplay)};{r.PaymentDate:dd.MM.yyyy};{r.GrossAmount:N2};{r.NetAmount:N2};{r.NdflAmount:N2}");
             }
 
             var totalGross = records.Sum(r => r.GrossAmount);
             var totalNet = records.Sum(r => r.NetAmount);
-            csv.AppendLine($"ИТОГО;;;{totalGross:N2};{totalNet:N2}");
+            var totalNdfl = records.Sum(r => r.NdflAmount);
+            csv.AppendLine($"ИТОГО;;;{totalGross:N2};{totalNet:N2};{totalNdfl:N2}");
         }
 
         if (hasIndexation)

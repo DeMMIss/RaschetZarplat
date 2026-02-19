@@ -1,8 +1,9 @@
 using System.Globalization;
+using System.IO;
 using System.Text.Json;
-using РасчетЗадолженностиЗП.Models;
+using РасчетВыплатЗарплаты.Models;
 
-namespace РасчетЗадолженностиЗП.Services;
+namespace РасчетВыплатЗарплаты.Services;
 
 public class ConfigService
 {
@@ -12,6 +13,48 @@ public class ConfigService
             throw new FileNotFoundException($"Файл конфигурации не найден: {path}");
 
         var json = File.ReadAllText(path);
+        
+        using (var jsonDoc = JsonDocument.Parse(json))
+        {
+            if (jsonDoc.RootElement.TryGetProperty("holidayWork", out var holidayWorkElement))
+            {
+                if (holidayWorkElement.ValueKind == JsonValueKind.Array)
+                {
+                    var root = jsonDoc.RootElement.Clone();
+                    using var stream = new MemoryStream();
+                    using var writer = new Utf8JsonWriter(stream);
+                    writer.WriteStartObject();
+                    
+                    foreach (var prop in root.EnumerateObject())
+                    {
+                        if (prop.Name.Equals("holidayWork", StringComparison.OrdinalIgnoreCase))
+                        {
+                            writer.WritePropertyName("holidayWork");
+                            writer.WriteStartObject();
+                            writer.WritePropertyName("dates");
+                            writer.WriteStartArray();
+                            foreach (var item in prop.Value.EnumerateArray())
+                            {
+                                writer.WriteStringValue(item.GetString());
+                            }
+                            writer.WriteEndArray();
+                            writer.WritePropertyName("dailyRateMethod");
+                            writer.WriteStringValue("MonthlyWorkDays");
+                            writer.WriteEndObject();
+                        }
+                        else
+                        {
+                            prop.WriteTo(writer);
+                        }
+                    }
+                    
+                    writer.WriteEndObject();
+                    writer.Flush();
+                    json = System.Text.Encoding.UTF8.GetString(stream.ToArray());
+                }
+            }
+        }
+        
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -48,6 +91,23 @@ public class ConfigService
                     CultureInfo.InvariantCulture, DateTimeStyles.None, out var calcDate))
             {
                 input.CalculationDate = calcDate;
+            }
+            
+            if (config.Calculation.CalculateIndexationUnderpayments.HasValue)
+            {
+                input.CalculateIndexationUnderpayments = config.Calculation.CalculateIndexationUnderpayments.Value;
+            }
+            
+            if (config.Calculation.CalculateUnusedVacationCompensation.HasValue)
+            {
+                input.CalculateUnusedVacationCompensation = config.Calculation.CalculateUnusedVacationCompensation.Value;
+            }
+            
+            if (!string.IsNullOrEmpty(config.Calculation.DismissalDate) &&
+                DateTime.TryParseExact(config.Calculation.DismissalDate, "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out var dismissalDate))
+            {
+                input.DismissalDate = dismissalDate;
             }
         }
 
@@ -87,12 +147,23 @@ public class ConfigService
 
         if (config.HolidayWork != null)
         {
-            foreach (var dateStr in config.HolidayWork)
+            if (config.HolidayWork.Dates != null)
             {
-                if (DateTime.TryParseExact(dateStr, "yyyy-MM-dd",
-                        CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                foreach (var dateStr in config.HolidayWork.Dates)
                 {
-                    input.HolidayWorkDates.Add(date);
+                    if (DateTime.TryParseExact(dateStr, "yyyy-MM-dd",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                    {
+                        input.HolidayWorkDates.Add(date);
+                    }
+                }
+            }
+            
+            if (!string.IsNullOrEmpty(config.HolidayWork.DailyRateMethod))
+            {
+                if (Enum.TryParse<HolidayWorkDailyRateMethod>(config.HolidayWork.DailyRateMethod, true, out var method))
+                {
+                    input.HolidayWorkDailyRateMethod = method;
                 }
             }
         }
@@ -153,7 +224,10 @@ public class ConfigService
             },
             Calculation = new CalculationConfig
             {
-                CalculationDate = input.CalculationDate.ToString("yyyy-MM-dd")
+                CalculationDate = input.CalculationDate.ToString("yyyy-MM-dd"),
+                CalculateIndexationUnderpayments = input.CalculateIndexationUnderpayments ? true : null,
+                CalculateUnusedVacationCompensation = input.CalculateUnusedVacationCompensation ? true : null,
+                DismissalDate = input.DismissalDate?.ToString("yyyy-MM-dd")
             },
             Indexation = new IndexationConfig
             {
@@ -166,7 +240,11 @@ public class ConfigService
                     IsPerformed = r.IsPerformed
                 }).ToList()
             },
-            HolidayWork = input.HolidayWorkDates.Select(d => d.ToString("yyyy-MM-dd")).ToList(),
+            HolidayWork = new HolidayWorkConfig
+            {
+                Dates = input.HolidayWorkDates.Select(d => d.ToString("yyyy-MM-dd")).ToList(),
+                DailyRateMethod = input.HolidayWorkDailyRateMethod.ToString()
+            },
             SickLeaves = input.SickLeaves.Select(sl => new SickLeaveConfig
             {
                 From = sl.From.ToString("yyyy-MM-dd"),
