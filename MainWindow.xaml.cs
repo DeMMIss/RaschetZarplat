@@ -229,6 +229,26 @@ public partial class MainWindow : Window
                 To = v.To,
                 Amount = v.Amount
             }));
+
+        UpdateExpanderStates();
+    }
+
+    private void UpdateExpanderStates()
+    {
+        if (HolidayWorkListBox.ItemsSource is ObservableCollection<HolidayWorkViewModel> holidayCollection)
+        {
+            HolidayWorkExpander.IsExpanded = holidayCollection.Count > 0;
+        }
+
+        if (SickLeavesListBox.ItemsSource is ObservableCollection<SickLeaveViewModel> sickLeaveCollection)
+        {
+            SickLeaveExpander.IsExpanded = sickLeaveCollection.Count > 0;
+        }
+
+        if (VacationsListBox.ItemsSource is ObservableCollection<VacationViewModel> vacationCollection)
+        {
+            VacationExpander.IsExpanded = vacationCollection.Count > 0;
+        }
     }
 
     private void SaveDataFromForm()
