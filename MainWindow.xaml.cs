@@ -186,7 +186,8 @@ public partial class MainWindow : Window
         CalculationDatePicker.SelectedDate = _salaryInput.CalculationDate;
         UpdateCalculateButtonState();
         
-        CalculateIndexationUnderpaymentsCheckBox.IsChecked = _salaryInput.CalculateIndexationUnderpayments;
+        var hasUnperformedIndexation = _salaryInput.IndexationRules.Any(r => !r.IsPerformed);
+        _salaryInput.CalculateIndexationUnderpayments = hasUnperformedIndexation;
         CalculateUnusedVacationCompensationCheckBox.IsChecked = _salaryInput.CalculateUnusedVacationCompensation;
         DismissalDatePicker.SelectedDate = _salaryInput.DismissalDate ?? _salaryInput.CalculationDate;
         DismissalDateGrid.Visibility = _salaryInput.CalculateUnusedVacationCompensation ? Visibility.Visible : Visibility.Collapsed;
@@ -204,12 +205,13 @@ public partial class MainWindow : Window
             HolidayWorkDailyRateMethodComboBox.SelectedIndex = 0;
         }
 
-        IndexationDataGrid.ItemsSource = _salaryInput.IndexationRules.OrderBy(r => r.Date).Select(r => new IndexationRuleViewModel
-        {
-            Date = r.Date,
-            Percent = r.Percent,
-            IsPerformed = r.IsPerformed
-        }).ToList();
+        IndexationDataGrid.ItemsSource = new ObservableCollection<IndexationRuleViewModel>(
+            _salaryInput.IndexationRules.OrderBy(r => r.Date).Select(r => new IndexationRuleViewModel
+            {
+                Date = r.Date,
+                Percent = r.Percent,
+                IsPerformed = r.IsPerformed
+            }));
 
         HolidayWorkListBox.ItemsSource = new ObservableCollection<HolidayWorkViewModel>(
             _salaryInput.HolidayWorkDates.OrderBy(d => d).Select(d => new HolidayWorkViewModel { Date = d }));
@@ -288,10 +290,6 @@ public partial class MainWindow : Window
             DismissalDatePicker.SelectedDate = _salaryInput.CalculationDate;
         }
         
-        _salaryInput.CalculateIndexationUnderpayments = CalculateIndexationUnderpaymentsCheckBox.IsChecked == true;
-        _salaryInput.CalculateUnusedVacationCompensation = CalculateUnusedVacationCompensationCheckBox.IsChecked == true;
-        _salaryInput.DismissalDate = DismissalDatePicker.SelectedDate ?? _salaryInput.CalculationDate;
-        
         if (HolidayWorkDailyRateMethodComboBox.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag != null)
         {
             if (Enum.TryParse<HolidayWorkDailyRateMethod>(selectedItem.Tag.ToString(), true, out var method))
@@ -313,6 +311,11 @@ public partial class MainWindow : Window
                 });
             }
         }
+
+        var hasUnperformedIndexation = _salaryInput.IndexationRules.Any(r => !r.IsPerformed);
+        _salaryInput.CalculateIndexationUnderpayments = hasUnperformedIndexation;
+        _salaryInput.CalculateUnusedVacationCompensation = CalculateUnusedVacationCompensationCheckBox.IsChecked == true;
+        _salaryInput.DismissalDate = DismissalDatePicker.SelectedDate ?? _salaryInput.CalculationDate;
 
         _salaryInput.HolidayWorkDates.Clear();
         if (HolidayWorkListBox.ItemsSource is ObservableCollection<HolidayWorkViewModel> holidayCollection)

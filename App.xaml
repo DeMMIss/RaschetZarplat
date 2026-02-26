@@ -5,7 +5,6 @@
     <Application.Resources>
         <SolidColorBrush x:Key="PrimaryColor" Color="#0078D4"/>
         <SolidColorBrush x:Key="PrimaryHoverColor" Color="#106EBE"/>
-        <SolidColorBrush x:Key="SuccessColor" Color="#107C10"/>
         <SolidColorBrush x:Key="ErrorColor" Color="#D13438"/>
         <SolidColorBrush x:Key="WarningColor" Color="#FF8C00"/>
         <SolidColorBrush x:Key="BackgroundColor" Color="#FAFAFA"/>
@@ -13,7 +12,6 @@
         <SolidColorBrush x:Key="BorderColor" Color="#E1E1E1"/>
         <SolidColorBrush x:Key="TextPrimaryColor" Color="#323130"/>
         <SolidColorBrush x:Key="TextSecondaryColor" Color="#605E5C"/>
-        <SolidColorBrush x:Key="AccentColor" Color="#0078D4"/>
         <SolidColorBrush x:Key="AccentLightColor" Color="#E8F4F8"/>
         
         <Style TargetType="Window">
@@ -167,13 +165,6 @@
                     <Setter Property="BorderBrush" Value="{StaticResource PrimaryColor}"/>
                 </Trigger>
             </Style.Triggers>
-        </Style>
-        
-        <Style TargetType="ToolBar">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
-            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-            <Setter Property="Padding" Value="10"/>
         </Style>
         
         <Style TargetType="ListBox">

@@ -315,14 +315,6 @@
                 
                 <GroupBox Header="📋 Опциональные расчёты" Margin="0,15,0,0">
                     <StackPanel Margin="15">
-                        <GroupBox x:Name="IndexationUnderpaymentsGroupBox" Header="💰 Расчёт недоплаты из-за непроведения индексации" Margin="0,0,0,15" FontSize="13">
-                            <StackPanel Margin="10">
-                                <CheckBox x:Name="CalculateIndexationUnderpaymentsCheckBox" Content="Рассчитать недоплаты из-за непроведения индексации" 
-                                          Margin="0,0,0,0"
-                                          ToolTip="Включить расчёт недоплат из-за непроведённой индексации и компенсации за задержку выплат"/>
-                            </StackPanel>
-                        </GroupBox>
-                        
                         <GroupBox x:Name="UnusedVacationGroupBox" Header="🎯 Компенсация за неиспользованный отпуск" Margin="0,0,0,0" FontSize="13">
                             <StackPanel Margin="10">
                                 <CheckBox x:Name="CalculateUnusedVacationCompensationCheckBox" Content="Рассчитать компенсацию за неиспользованный отпуск при увольнении" 
