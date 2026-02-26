@@ -54,7 +54,20 @@ public class MonthlyPayment
         AccumulatedIncomeTracker incomeTracker,
         DateTime endDate)
     {
-        var settlementDate = GetSettlementPaymentDate(year, month, input.SettlementPayDay);
+        var normalSettlementDate = GetSettlementPaymentDate(year, month, input.SettlementPayDay);
+        var settlementDate = normalSettlementDate;
+
+        if (input.DismissalDate.HasValue)
+        {
+            var dismissalDate = input.DismissalDate.Value.Date;
+            var monthEnd = new DateTime(year, month, DateTime.DaysInMonth(year, month));
+            
+            if (dismissalDate > monthEnd && dismissalDate <= normalSettlementDate)
+            {
+                settlementDate = dismissalDate;
+            }
+        }
+
         if (settlementDate > endDate)
         {
             return null;
